@@ -2,7 +2,7 @@ const BALL_X = 0
 const BALL_R = 28
 const getBallPos = () => {
   const x = BALL_X
-  const y = random(height - BALL_R) + BALL_R
+  const y = random(height - BALL_R * 2) + BALL_R
   return {
     x,y 
   }
@@ -26,7 +26,7 @@ class Ball {
     pop()
   }
   move() {
-    if(this.x > width - this.radius) {
+    if(this.x > width) {
       this.x = 0
     }
     
@@ -105,7 +105,7 @@ class Scene {
   }
   
   init() {
-    createCanvas(400, 400)
+    createCanvas(400, 400, WEBGL)
     this.ball = new Ball()
     this.ball.render()
     
