@@ -29,7 +29,7 @@ class Ball {
     pop()
   }
   move() {
-    if(this.x > width + WEBGL_BIAS.X) {
+    if(this.x > width + WEBGL_BIAS.X - BALL_R) {
       this.x = WEBGL_BIAS.X
     }
     
@@ -47,7 +47,7 @@ class Ball {
   initBallPos() {
     const ballY = random(height)
 
-    const x = WEBGL_BIAS.X + BALL_X
+    const x = WEBGL_BIAS.X + BALL_X + BALL_R
     const y = constrain(
       WEBGL_BIAS.Y + ballY,
       WEBGL_BIAS.Y + BALL_R, 
