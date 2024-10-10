@@ -170,9 +170,8 @@ class Scene {
 
     translate(WEBGL_BIAS.X, WEBGL_BIAS.Y)
 
-    background(225)
     noStroke()
-    
+
     this.background.render()
     this.ball.move()
     this.box.render()
@@ -192,24 +191,23 @@ class Scene {
 class BackGround {
   get vertSrc() {
     return /*glsl*/`
-#ifdef GL_ES
 precision mediump float;
-#endif
 attribute vec3 aPosition;
 attribute vec2 aTexCoord;
 varying vec2 vTexCoord;
 
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
 void main() {
   vTexCoord = aTexCoord;
-  gl_Position = vec4(aPosition, 1.0);
+  gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
 }
     `
   };
   get fragSrc() {
     return /*glsl*/`
-#ifdef GL_ES
 precision mediump float;
-#endif
 
 uniform vec2 u_resolution;
 varying vec2 vTexCoord;
@@ -219,19 +217,23 @@ void main() {
   vec2 st = vTexCoord * u_resolution;
 
   // Define the grid size
-  float gridSize = 40.0;
+  float gridSize = 32.0;
   
-  // Create the grid lines
+  // Create the grid lines, keep the decimal part
   vec2 grid = fract(st / gridSize);
 
   // Define the line thickness
-  float lineThickness = 0.05;
+  float lineThickness = 0.04;
 
-  // Create the grid effect
+  // Create the grid effect, step is like "<", true = 1.0, false = 0.0
   float line = step(grid.x, lineThickness) + step(grid.y, lineThickness);
+  float pixelColor = 0.84 - line;
+  if (pixelColor < 0.0) {
+    pixelColor = 0.6;
+  }
 
   // Output the color based on the grid lines
-  vec3 color = vec3(1.0 - line);
+  vec3 color = vec3(pixelColor);
 
   gl_FragColor = vec4(color, 1.0);
 }
@@ -248,7 +250,7 @@ void main() {
     push()
     shader(this.shader)
     this.shader.setUniform("u_resolution", [width, height])
-    fill(225)
+
     rect(0, 0, width, height)
     resetShader()
     pop()
