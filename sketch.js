@@ -9,7 +9,7 @@ const WEBGL_BIAS = {
 }
 
 const BALL_X = 0
-const BALL_R = 28
+const BALL_R = 14
 
 class Ball {
   constructor() {
@@ -25,7 +25,7 @@ class Ball {
   render() {
     push()
     fill(255)
-    circle(this.x, this.y, this.radius)
+    circle(this.x, this.y, this.radius * 2)
     pop()
   }
   move() {
@@ -45,10 +45,15 @@ class Ball {
     this.y = y 
   }
   initBallPos() {
-    const ballY = random(height - BALL_R * 2)
+    const ballY = random(height)
 
     const x = WEBGL_BIAS.X + BALL_X
-    const y = WEBGL_BIAS.Y + ballY + BALL_R
+    const y = constrain(
+      WEBGL_BIAS.Y + ballY,
+      WEBGL_BIAS.Y + BALL_R, 
+      height + WEBGL_BIAS.Y - BALL_R
+    )
+    
     return {
       x,y 
     }
@@ -109,9 +114,13 @@ class Box {
   }
 
   initBoxPos() {
+    const boxBias = BOX_W / 2
+
+    const x = WEBGL_BIAS.X + width/2 - boxBias
+    const y = WEBGL_BIAS.Y + height/2 - boxBias
+
     return {
-      x: WEBGL_BIAS.X + width/2,
-      y: WEBGL_BIAS.Y + height/2
+      x, y
     }
   }
 }
@@ -144,7 +153,6 @@ class Scene {
   }
   
   hit() {
-    this.box.reset()
     this.ball.reset()
   }
   
