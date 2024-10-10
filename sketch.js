@@ -1,3 +1,13 @@
+const WEBGL_BIAS = {
+  get X() {
+    return -width/2
+  },
+
+  get Y() {
+    return -height/2
+  }
+}
+
 const BALL_X = 0
 const BALL_R = 28
 
@@ -19,8 +29,8 @@ class Ball {
     pop()
   }
   move() {
-    if(this.x > width) {
-      this.x = 0
+    if(this.x > width + WEBGL_BIAS.X) {
+      this.x = WEBGL_BIAS.X
     }
     
     this.x += this.step
@@ -35,8 +45,10 @@ class Ball {
     this.y = y 
   }
   initBallPos() {
-    const x = BALL_X
-    const y = random(height - BALL_R * 2) + BALL_R
+    const ballY = random(height - BALL_R * 2)
+
+    const x = WEBGL_BIAS.X + BALL_X
+    const y = WEBGL_BIAS.Y + ballY + BALL_R
     return {
       x,y 
     }
@@ -66,8 +78,19 @@ class Box {
   }
   
   moveStep(x, y) {
-    this.x = constrain(this.x + x, 0, width - BOX_W)
-    this.y = constrain(this.y + y, 0, height - BOX_W)
+    const boxBias = this.w
+
+    this.x = constrain(
+      this.x + x, 
+      WEBGL_BIAS.X, 
+      width + WEBGL_BIAS.X - boxBias
+    )
+
+    this.y = constrain(
+      this.y + y, 
+      WEBGL_BIAS.Y,
+      height + WEBGL_BIAS.Y - boxBias
+    )
   }
   
   getCollider(x, y) {
@@ -87,8 +110,8 @@ class Box {
 
   initBoxPos() {
     return {
-      x: width/2 - BOX_W / 2,
-      y: height/2 - BOX_W / 2
+      x: WEBGL_BIAS.X + width/2,
+      y: WEBGL_BIAS.Y + height/2
     }
   }
 }
