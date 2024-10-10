@@ -31,8 +31,8 @@ class Ball {
     pop()
   }
   move() {
-    if (this.x > width + WEBGL_BIAS.X - BALL_R) {
-      this.x = WEBGL_BIAS.X
+    if (this.x > width - BALL_R) {
+      this.x = 0
     }
 
     this.x += this.step
@@ -42,18 +42,18 @@ class Ball {
     const { x, y } = this.initBallPos()
 
     this.radius = BALL_R
-    this.step = random()
+    this.step = random(0.1, 1)
     this.x = x
     this.y = y
   }
   initBallPos() {
     const ballY = random(height)
 
-    const x = WEBGL_BIAS.X + BALL_X + BALL_R
+    const x = BALL_X + BALL_R
     const y = constrain(
-      WEBGL_BIAS.Y + ballY,
-      WEBGL_BIAS.Y + BALL_R,
-      height + WEBGL_BIAS.Y - BALL_R
+      ballY,
+      BALL_R,
+      height - BALL_R
     )
 
     return {
@@ -89,14 +89,14 @@ class Box {
 
     this.x = constrain(
       this.x + x,
-      WEBGL_BIAS.X,
-      width + WEBGL_BIAS.X - boxBias
+      0,
+      width - boxBias
     )
 
     this.y = constrain(
       this.y + y,
-      WEBGL_BIAS.Y,
-      height + WEBGL_BIAS.Y - boxBias
+      0,
+      height - boxBias
     )
   }
 
@@ -118,8 +118,8 @@ class Box {
   initBoxPos() {
     const boxBias = BOX_W / 2
 
-    const x = WEBGL_BIAS.X + width / 2 - boxBias
-    const y = WEBGL_BIAS.Y + height / 2 - boxBias
+    const x = width / 2 - boxBias
+    const y = height / 2 - boxBias
 
     return {
       x, y
@@ -166,11 +166,17 @@ class Scene {
       return
     }
 
+    push()
+
+    translate(WEBGL_BIAS.X, WEBGL_BIAS.Y)
+
     background(225)
     noStroke()
     this.ball.move()
     this.background.render()
     this.box.render()
+
+    pop()
 
     const { colliderX, colliderY } = this.box.getCollider(this.ball.x, this.ball.y)
     const distance = dist(colliderX, colliderY, this.ball.x, this.ball.y)
@@ -242,7 +248,7 @@ void main() {
     shader(this.shader)
     this.shader.setUniform("u_resolution", [width, height])
     fill(225)
-    rect(WEBGL_BIAS.X, WEBGL_BIAS.Y, width, height)
+    rect(0, 0, width, height)
     resetShader()
     pop()
 
