@@ -1,12 +1,5 @@
 const BALL_X = 0
 const BALL_R = 28
-const getBallPos = () => {
-  const x = BALL_X
-  const y = random(height - BALL_R) + BALL_R
-  return {
-    x,y 
-  }
-}
 
 class Ball {
   constructor() {
@@ -26,7 +19,7 @@ class Ball {
     pop()
   }
   move() {
-    if(this.x > width - this.radius) {
+    if(this.x > width) {
       this.x = 0
     }
     
@@ -34,22 +27,23 @@ class Ball {
     this.render()
   }
   reset() {
-    const {x, y} = getBallPos()
+    const {x, y} = this.initBallPos()
     
     this.radius = BALL_R
     this.step = random()
     this.x = x
     this.y = y 
   }
+  initBallPos() {
+    const x = BALL_X
+    const y = random(height - BALL_R * 2) + BALL_R
+    return {
+      x,y 
+    }
+  }
 }
 
 const BOX_W = 28
-const getBoxPos = () => {
-  return {
-    x: width/2 - BOX_W / 2,
-    y: height/2 - BOX_W / 2
-  }
-}
 
 class Box {
   constructor() {
@@ -84,11 +78,18 @@ class Box {
   }
   
   reset() {
-    const { x,y } = getBoxPos()
+    const { x,y } = this.initBoxPos()
     
     this.w = BOX_W
     this.x = x
     this.y = y
+  }
+
+  initBoxPos() {
+    return {
+      x: width/2 - BOX_W / 2,
+      y: height/2 - BOX_W / 2
+    }
   }
 }
 
@@ -105,7 +106,7 @@ class Scene {
   }
   
   init() {
-    createCanvas(400, 400)
+    createCanvas(400, 400, WEBGL)
     this.ball = new Ball()
     this.ball.render()
     
