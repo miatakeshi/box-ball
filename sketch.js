@@ -172,8 +172,9 @@ class Scene {
 
     background(225)
     noStroke()
-    this.ball.move()
+    
     this.background.render()
+    this.ball.move()
     this.box.render()
 
     pop()
