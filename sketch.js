@@ -1,3 +1,5 @@
+let gl = null
+
 const WEBGL_BIAS = {
   get X() {
     return -width / 2
@@ -234,6 +236,8 @@ void main() {
   }
 
   render() {
+    gl && gl.disable(gl.DEPTH_TEST)
+
     push()
     shader(this.shader)
     this.shader.setUniform("u_resolution", [width, height])
@@ -241,6 +245,8 @@ void main() {
     rect(WEBGL_BIAS.X, WEBGL_BIAS.Y, width, height)
     resetShader()
     pop()
+
+    gl && gl.enable(gl.DEPTH_TEST)
   }
 }
 
@@ -252,6 +258,7 @@ function setup() {
 }
 
 function draw() {
+  gl = this._renderer.GL
   const arrows = [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW]
 
   scene.render()
