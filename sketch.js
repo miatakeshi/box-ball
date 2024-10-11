@@ -227,7 +227,7 @@ class Scene {
 
     noStroke()
 
-    this.background.render()
+    this.background.render(this.ball.crashed ? [this.ball.x, this.ball.y] : null)
 
     this.text()
     this.ball.move()
@@ -269,6 +269,10 @@ precision mediump float;
 uniform vec2 u_resolution;
 varying vec2 vTexCoord;
 
+
+uniform vec2 u_ballPos;  // ball position
+uniform float u_time;     // Time to animate the ripple
+
 void main() {
   // Normalize the texture coordinates
   vec2 st = vTexCoord * u_resolution;
@@ -289,6 +293,21 @@ void main() {
     pixelColor = 0.8;
   }
 
+  if (u_ballPos != vec2(0.0, 0.0)) {
+    // Ripple effect
+    vec2 rippleCenter = u_ballPos / u_resolution;
+    float dist = distance(st / u_resolution, rippleCenter);
+    
+    // Calculate the ripple animation based on time and distance
+    float ripple = sin(dist * 30.0 - u_time * 10.0) * exp(-dist * 10.0);
+    
+    // Mix ripple effect with grid color
+    pixelColor += ripple * 0.5;
+  
+    // Output the color based on the grid lines and ripple effect
+    vec3 color = vec3(pixelColor);
+  }
+
   // Output the color based on the grid lines
   vec3 color = vec3(pixelColor);
 
@@ -301,12 +320,14 @@ void main() {
     this.shader = createShader(this.vertSrc, this.fragSrc)
   }
 
-  render() {
+  render(ballCrushPos) {
     gl && gl.disable(gl.DEPTH_TEST)
 
     push()
     shader(this.shader)
     this.shader.setUniform("u_resolution", [width, height])
+    this.shader.setUniform("u_ballPos", ballCrushPos ?? [0, 0]);
+    this.shader.setUniform("u_time", deltaTime * 0.001);
 
     rect(0, 0, width, height)
     resetShader()
@@ -328,7 +349,7 @@ class Particle {
   render() {
     push()
     noStroke()
-    fill(255, 255, 255, this.alpha)
+    fill(255, 0, 0, this.alpha)
     ellipse(this.x, this.y, 8)
     pop()
   }
