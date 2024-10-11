@@ -10,6 +10,16 @@ const WEBGL_BIAS = {
   }
 }
 
+const gameLogic = {
+  points: 0,
+  hit() {
+    this.points += 100
+  },
+  miss() {
+    this.points -= 50
+  }
+}
+
 const BALL_X = 0
 const BALL_R = 14
 
@@ -46,6 +56,7 @@ class Ball {
   move() {
     if (this.x > width - BALL_R) {
       this.x = 0
+      gameLogic.miss()
     }
 
     this.x += this.step
@@ -84,8 +95,10 @@ class Ball {
 
   crash() {
     this.crashed = true
-    if (this.particles.length === 0)
+    if (this.particles.length === 0) {
       this.createParticles(this.x, this.y)
+      gameLogic.hit()
+    }
   }
 }
 
@@ -165,6 +178,7 @@ class Scene {
     }
     this.ball = null
     this.box = null
+    this.font = null
   }
 
   init() {
@@ -189,6 +203,19 @@ class Scene {
     this.ball.crash()
   }
 
+  loadFont() {
+    this.font = loadFont("./Codystar-Regular-2.ttf")
+  }
+
+  text() {
+    push()
+    fill(0)
+    textFont(this.font);
+    textSize(36);
+    text('Points ' + gameLogic.points, 10, 50);
+    pop()
+  }
+
   render() {
     if (!this.box || !this.ball) {
       return
@@ -201,6 +228,8 @@ class Scene {
     noStroke()
 
     this.background.render()
+
+    this.text()
     this.ball.move()
     this.box.render()
 
@@ -317,6 +346,10 @@ class Particle {
 
 const scene = new Scene()
 const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]
+
+function preload() {
+  scene.loadFont()
+}
 
 function setup() {
   scene.init()
