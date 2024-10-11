@@ -48,7 +48,7 @@ class Ball {
   }
   initBallPos() {
     const ballY = random(height)
-
+    
     const x = BALL_X + BALL_R
     const y = constrain(
       ballY,
@@ -217,7 +217,7 @@ void main() {
   vec2 st = vTexCoord * u_resolution;
 
   // Define the grid size
-  float gridSize = 32.0;
+  float gridSize = 20.0;
   
   // Create the grid lines, keep the decimal part
   vec2 grid = fract(st / gridSize);
@@ -227,9 +227,9 @@ void main() {
 
   // Create the grid effect, step is like "<", true = 1.0, false = 0.0
   float line = step(grid.x, lineThickness) + step(grid.y, lineThickness);
-  float pixelColor = 0.84 - line;
+  float pixelColor = 0.88 - line;
   if (pixelColor < 0.0) {
-    pixelColor = 0.6;
+    pixelColor = 0.8;
   }
 
   // Output the color based on the grid lines
