@@ -25,10 +25,23 @@ class Ball {
     this.reset()
   }
   render() {
-    push()
-    fill(255)
-    circle(this.x, this.y, this.radius * 2)
-    pop()
+    if (this.crashed) {
+      this.particles.forEach(p => {
+        p.render()
+        p.move()
+      })
+
+      this.particles = this.particles.filter(p => !p.isFinished())
+      if (this.particles.length === 0) {
+        this.reset()
+      }
+    } else {
+      push()
+      stroke(166)
+      fill(255)
+      circle(this.x, this.y, this.radius * 2)
+      pop()
+    }
   }
   move() {
     if (this.x > width - BALL_R) {
@@ -45,10 +58,12 @@ class Ball {
     this.step = random(0.1, 1)
     this.x = x
     this.y = y
+    this.particles = []
+    this.crashed = false
   }
   initBallPos() {
     const ballY = random(height)
-    
+
     const x = BALL_X + BALL_R
     const y = constrain(
       ballY,
@@ -59,6 +74,18 @@ class Ball {
     return {
       x, y
     }
+  }
+
+  createParticles(x, y) {
+    for (let i = 0; i < 30; i++) {
+      this.particles.push(new Particle(x, y));
+    }
+  }
+
+  crash() {
+    this.crashed = true
+    if (this.particles.length === 0)
+      this.createParticles(this.x, this.y)
   }
 }
 
@@ -78,6 +105,7 @@ class Box {
   render() {
     push()
 
+    stroke(166)
     fill(255)
     square(this.x, this.y, this.w)
 
@@ -158,7 +186,7 @@ class Scene {
   }
 
   hit() {
-    this.ball.reset()
+    this.ball.crash()
   }
 
   render() {
@@ -256,6 +284,34 @@ void main() {
     pop()
 
     gl && gl.enable(gl.DEPTH_TEST)
+  }
+}
+
+class Particle {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+    this.vx = random(-8, 8)
+    this.vy = random(-8, 8)
+    this.alpha = 255
+  }
+
+  render() {
+    push()
+    noStroke()
+    fill(255, 255, 255, this.alpha)
+    ellipse(this.x, this.y, 8)
+    pop()
+  }
+
+  move() {
+    this.x += this.vx
+    this.y += this.vy
+    this.alpha -= 30
+  }
+
+  isFinished() {
+    return this.alpha <= 0
   }
 }
 
