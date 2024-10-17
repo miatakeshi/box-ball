@@ -57,11 +57,11 @@ class Ball {
   }
   move() {
     if (this.x > width - BALL_R) {
-      this.x = 0
+      this.direction *= -1
       gameLogic.miss()
     }
 
-    this.x += this.step
+    this.x += this.step * this.direction
     this.render()
   }
   reset() {
@@ -73,6 +73,7 @@ class Ball {
     this.y = y
     this.particles = []
     this.crashed = false
+    this.direction = 1
   }
   initBallPos() {
     const ballY = random(height)
