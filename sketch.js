@@ -49,8 +49,9 @@ class Ball {
       }
     } else {
       push()
-      stroke(166)
       fill(255)
+      stroke(20)
+      strokeWeight(4)
       circle(this.x, this.y, this.radius * 2)
       pop()
     }
@@ -123,8 +124,10 @@ class Box {
   render() {
     push()
 
-    stroke(166)
-    fill(255)
+    fill(255)    
+    stroke(20)
+    strokeWeight(4)
+    
     square(this.x, this.y, this.w)
 
     pop()
@@ -214,7 +217,7 @@ class Scene {
 
   text() {
     push()
-    fill(0)
+    fill(255)
     textFont(this.font);
     textSize(36);
     text('Points ' + gameLogic.points, 10, 50);
@@ -235,6 +238,7 @@ class Scene {
     this.background.render(this.ball.crashed ? [this.ball.x, this.ball.y] : null)
 
     this.text()
+
     this.ball.move()
     this.box.render()
 
@@ -271,52 +275,52 @@ void main() {
     return /*glsl*/`
 precision mediump float;
 
-uniform vec2 u_resolution;
-varying vec2 vTexCoord;
+uniform vec2 uResolution;
+uniform vec2 uBall;
+uniform float uTime;
 
+vec2 pinch(vec2 uv, vec2 center, float strength, float radius) {
+  // to tilt the cube, set dist to a value then the cube will be the same
+  vec2 d = uv - center;
+  float dist = 2.; //max(abs(d.x), abs(d.y)); // 1.0
+  float factor = 1.0 - smoothstep(0.0, radius, dist);
+  return uv + d * factor * strength;
+}
 
-uniform vec2 u_ballPos;  // ball position
-uniform float u_time;     // Time to animate the ripple
+float radial(vec2 uv, vec2 center, float time, float freq, float speed) {
+  if (center.x == 0. && center.y == 0.) {
+    return 1.8;
+  }
+  
+  float dist = max(abs(uv.x - center.x), abs(uv.y - center.y)); // Cubic distance
+  return sin(dist * freq - time * speed) * 0.5 + 0.5;
+}
+
+float grid(vec2 uv, float size, float spacing, float softness) {
+  vec2 grid = fract(uv / spacing + 0.5) - 0.5;
+  float dist = max(abs(grid.x), abs(grid.y));
+  return 1.0 - smoothstep(size * 0.5 - softness, size * 0.5 + softness, dist);
+}
 
 void main() {
-  // Normalize the texture coordinates
-  vec2 st = vTexCoord * u_resolution;
+  vec2 uv = (gl_FragCoord.xy - .5 * uResolution.xy) / min(uResolution.y, uResolution.x); // Normalize screen to -1 to 1
+  vec2 ballUV = (uBall.xy - .5 * uResolution.xy) / min(uResolution.y, uResolution.x); // Normalize ball position to -1 to 1
 
-  // Define the grid size
-  float gridSize = 20.0;
-  
-  // Create the grid lines, keep the decimal part
-  vec2 grid = fract(st / gridSize);
-
-  // Define the line thickness
-  float lineThickness = 0.04;
-
-  // Create the grid effect, step is like "<", true = 1.0, false = 0.0
-  float line = step(grid.x, lineThickness) + step(grid.y, lineThickness);
-  float pixelColor = 0.88 - line;
-  if (pixelColor < 0.0) {
-    pixelColor = 0.8;
+  if (uBall.x == 0. && uBall.y == 0.) {
+    ballUV = vec2(0.0, 0.0);
   }
 
-  if (u_ballPos != vec2(0.0, 0.0)) {
-    // Ripple effect
-    vec2 rippleCenter = u_ballPos / u_resolution;
-    float dist = distance(st / u_resolution, rippleCenter);
-    
-    // Calculate the ripple animation based on time and distance
-    float ripple = sin(dist * 30.0 - u_time * 10.0) * exp(-dist * 10.0);
-    
-    // Mix ripple effect with grid color
-    pixelColor += ripple * 0.5;
-  
-    // Output the color based on the grid lines and ripple effect
-    vec3 color = vec3(pixelColor);
-  }
+  vec2 distortedUV = pinch(uv, ballUV, -.5, 2.0);
+  float pulse = radial(uv, ballUV, uTime, 20.0/*freq*/, 20.0/*speed*/);
+  float currentDotSize = .3 * (1.0 + pulse); 
+  float dot = grid(distortedUV, currentDotSize, .026, .02);
 
-  // Output the color based on the grid lines
-  vec3 color = vec3(pixelColor);
+  vec4 backgroundColor = vec4(0.5, 0.5, 0.5, 1.);
+  vec4 dotColor = vec4(.6, .6, .6, 1.);
 
-  gl_FragColor = vec4(color, 1.0);
+  vec3 color = mix(backgroundColor.rgb, dotColor.rgb, dot);
+
+  gl_FragColor = vec4(color, 1.);
 }
 
     `
@@ -330,9 +334,9 @@ void main() {
 
     push()
     shader(this.shader)
-    this.shader.setUniform("u_resolution", [width, height])
-    this.shader.setUniform("u_ballPos", ballCrushPos ?? [0, 0]);
-    this.shader.setUniform("u_time", deltaTime * 0.001);
+    this.shader.setUniform("uResolution", [width, height])
+    this.shader.setUniform("uBall", ballCrushPos ?? [0, 0]);
+    this.shader.setUniform("uTime", millis() * 0.001);
 
     rect(0, 0, width, height)
     resetShader()
