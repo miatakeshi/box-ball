@@ -56,7 +56,9 @@ class Ball {
     }
   }
   move() {
-    if (this.x > width - BALL_R) {
+    const clampX = constrain(this.x, BALL_R, width - BALL_R)
+
+    if (this.x !== clampX) {
       this.direction *= -1
       gameLogic.miss()
     }
