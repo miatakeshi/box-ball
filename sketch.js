@@ -273,56 +273,68 @@ void main() {
   };
   get fragSrc() {
     return /*glsl*/`
-precision mediump float;
+    precision mediump float;
 
-uniform vec2 uResolution;
-uniform vec2 uBall;
-uniform float uTime;
-
-vec2 pinch(vec2 uv, vec2 center, float strength, float radius) {
-  // to tilt the cube, set dist to a value then the cube will be the same
-  vec2 d = uv - center;
-  float dist = 2.; //max(abs(d.x), abs(d.y)); // 1.0
-  float factor = 1.0 - smoothstep(0.0, radius, dist);
-  return uv + d * factor * strength;
-}
-
-float radial(vec2 uv, vec2 center, float time, float freq, float speed) {
-  if (center.x == 0. && center.y == 0.) {
-    return 1.8;
-  }
-  
-  float dist = max(abs(uv.x - center.x), abs(uv.y - center.y)); // Cubic distance
-  return sin(dist * freq - time * speed) * 0.5 + 0.5;
-}
-
-float grid(vec2 uv, float size, float spacing, float softness) {
-  vec2 grid = fract(uv / spacing + 0.5) - 0.5;
-  float dist = max(abs(grid.x), abs(grid.y));
-  return 1.0 - smoothstep(size * 0.5 - softness, size * 0.5 + softness, dist);
-}
-
-void main() {
-  vec2 uv = (gl_FragCoord.xy - .5 * uResolution.xy) / min(uResolution.y, uResolution.x); // Normalize screen to -1 to 1
-  vec2 ballUV = (uBall.xy - .5 * uResolution.xy) / min(uResolution.y, uResolution.x); // Normalize ball position to -1 to 1
-
-  if (uBall.x == 0. && uBall.y == 0.) {
-    ballUV = vec2(0.0, 0.0);
-  }
-
-  vec2 distortedUV = pinch(uv, ballUV, -.5, 2.0);
-  float pulse = radial(uv, ballUV, uTime, 20.0/*freq*/, 20.0/*speed*/);
-  float currentDotSize = .3 * (1.0 + pulse); 
-  float dot = grid(distortedUV, currentDotSize, .026, .02);
-
-  vec4 backgroundColor = vec4(0.5, 0.5, 0.5, 1.);
-  vec4 dotColor = vec4(.6, .6, .6, 1.);
-
-  vec3 color = mix(backgroundColor.rgb, dotColor.rgb, dot);
-
-  gl_FragColor = vec4(color, 1.);
-}
-
+    uniform vec2 uResolution;
+    uniform vec2 uBall;
+    uniform float uTime;
+    
+    vec2 pinch(vec2 uv, vec2 center, float strength, float radius) {
+      vec2 d = uv - center;
+      float dist = 2.; // max(abs(d.x), abs(d.y)); // Cubic distance
+      float factor = 1.0 - smoothstep(0.0, radius, dist);
+      return uv + d * factor * strength;
+    }
+    
+    float radial(vec2 uv, vec2 center, float time, float freq, float speed) {
+      if (center.x == 0. && center.y == 0.) {
+        return 1.8; // Base case if center is at origin
+      }
+    
+      // Calculate distance using cubic distance formula
+      float dist = max(abs(uv.x - center.x), abs(uv.y - center.y));
+      return sin(dist * freq - time * speed) * 0.5 + 0.5;
+    }
+    
+    float grid(vec2 uv, float size, float spacing, float softness) {
+      vec2 grid = fract(uv / spacing + 0.5) - 0.5;
+      float dist = max(abs(grid.x), abs(grid.y));
+      return 1.0 - smoothstep(size * 0.5 - softness, size * 0.5 + softness, dist);
+    }
+    
+    void main() {
+      // Normalize screen coordinates to -1 to 1 space
+      vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / min(uResolution.y, uResolution.x);
+      
+      // Normalize ball position and map correctly, keeping the correct position for negative values
+      vec2 ballUV = (uBall - 0.5 * uResolution.xy) / min(uResolution.y, uResolution.x);
+    
+      // Check for special case when ball is at origin
+      if (uBall.x == 0. && uBall.y == 0.) {
+        ballUV = vec2(0.0, 0.0); 
+      }
+    
+      // Apply pinch distortion based on ball position
+      vec2 distortedUV = pinch(uv, ballUV, -.5, 2.0);
+    
+      // Apply radial pulse effect around ballUV
+      float pulse = radial(uv, ballUV, uTime, 20.0, 20.0);
+    
+      // Calculate current dot size based on pulse
+      float currentDotSize = 0.3 * (1.0 + pulse); 
+      float dot = grid(distortedUV, currentDotSize, 0.026, 0.02);
+    
+      // Define background and dot colors
+      vec4 backgroundColor = vec4(0.5, 0.5, 0.5, 1.);
+      vec4 dotColor = vec4(0.6, 0.6, 0.6, 1.);
+    
+      // Mix colors based on dot grid
+      vec3 color = mix(backgroundColor.rgb, dotColor.rgb, dot);
+    
+      // Output final color
+      gl_FragColor = vec4(color, 1.0);
+    }
+    
     `
   }
   constructor() {
