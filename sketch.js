@@ -187,7 +187,7 @@ class Scene {
   }
 
   init() {
-    createCanvas(400, 400, WEBGL)
+    createCanvas(windowWidth, windowHeight, WEBGL)
 
     this.background = new BackGround()
 
@@ -392,4 +392,9 @@ function draw() {
       scene.control(k.replace("Arrow", ""))
     }
   })
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight)
+  scene.init()
 }
