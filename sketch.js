@@ -347,7 +347,7 @@ void main() {
     push()
     shader(this.shader)
     this.shader.setUniform("uResolution", [width, height])
-    this.shader.setUniform("uBall", ballCrushPos ?? [0, 0]);
+    this.shader.setUniform("uBall", ballCrushPos ? [ballCrushPos[0], height - ballCrushPos[1]] : [0, 0]);
     this.shader.setUniform("uTime", millis() * 0.001);
 
     rect(0, 0, width, height)
