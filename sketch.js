@@ -193,6 +193,7 @@ class Scene {
     createCanvas(windowWidth, windowHeight, WEBGL)
 
     this.background = new BackGround()
+    this.background.loadImg()
 
     this.ball = new Ball()
     this.ball.render()
@@ -339,6 +340,49 @@ void main() {
   }
   constructor() {
     this.shader = createShader(this.vertSrc, this.fragSrc)
+    this.img = null
+  }
+
+  loadImg() {
+    const img = loadImage('koera.png')
+    
+    img.loadPixels()
+      // Scale the image by a factor (e.g., 4)
+  let scaleFactor = 4;
+  let newWidth = img.width * scaleFactor;
+  let newHeight = img.height * scaleFactor;
+
+  // Create a new scaled image
+  const scaledImg = createImage(newWidth, newHeight);
+  scaledImg.loadPixels();
+
+  // Apply nearest neighbor scaling
+  for (let y = 0; y < newHeight; y++) {
+    for (let x = 0; x < newWidth; x++) {
+      // Map the scaled pixel back to the nearest original pixel
+      let origX = floor(x / scaleFactor);
+      let origY = floor(y / scaleFactor);
+
+      // Get the original pixel color
+      let origIndex = (origY * img.width + origX) * 4;
+      let r = img.pixels[origIndex];
+      let g = img.pixels[origIndex + 1];
+      let b = img.pixels[origIndex + 2];
+      let a = img.pixels[origIndex + 3];
+
+      // Set the scaled pixel color
+      let newIndex = (y * newWidth + x) * 4;
+      scaledImg.pixels[newIndex] = r;
+      scaledImg.pixels[newIndex + 1] = g;
+      scaledImg.pixels[newIndex + 2] = b;
+      scaledImg.pixels[newIndex + 3] = a;
+    }
+  }
+
+  scaledImg.updatePixels();
+    
+
+    this.img = scaledImg
   }
 
   render(ballCrushPos) {
