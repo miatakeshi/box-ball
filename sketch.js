@@ -124,10 +124,10 @@ class Box {
   render() {
     push()
 
-    fill(255)    
+    fill(255)
     stroke(20)
     strokeWeight(4)
-    
+
     square(this.x, this.y, this.w)
 
     pop()
@@ -276,9 +276,12 @@ void main() {
     return /*glsl*/`
     precision mediump float;
 
+    varying vec2 vTexCoord;
+
     uniform vec2 uResolution;
     uniform vec2 uBall;
     uniform float uTime;
+    uniform sampler2D uImage;
     
     vec2 pinch(vec2 uv, vec2 center, float strength, float radius) {
       vec2 d = uv - center;
@@ -304,6 +307,8 @@ void main() {
     }
     
     void main() {
+      vec4 imgColor = texture2D(uImage, vTexCoord);
+
       // Normalize screen coordinates to -1 to 1 space
       vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / min(uResolution.y, uResolution.x);
       
@@ -327,7 +332,7 @@ void main() {
     
       // Define background and dot colors
       vec4 backgroundColor = vec4(0.5, 0.5, 0.5, 1.);
-      vec4 dotColor = vec4(0.6, 0.6, 0.6, 1.);
+      vec4 dotColor = vec4(0.6, 0.6, 0.6, 1.) + imgColor;
     
       // Mix colors based on dot grid
       vec3 color = mix(backgroundColor.rgb, dotColor.rgb, dot);
@@ -345,42 +350,35 @@ void main() {
 
   loadImg() {
     const img = loadImage('koera.png')
-    
+
     img.loadPixels()
-      // Scale the image by a factor (e.g., 4)
-  let scaleFactor = 4;
-  let newWidth = img.width * scaleFactor;
-  let newHeight = img.height * scaleFactor;
 
-  // Create a new scaled image
-  const scaledImg = createImage(newWidth, newHeight);
-  scaledImg.loadPixels();
+    const scaledImg = createImage(width, height);
+    const xFactor = width / img.width
+    const yFactor = height / img.height
 
-  // Apply nearest neighbor scaling
-  for (let y = 0; y < newHeight; y++) {
-    for (let x = 0; x < newWidth; x++) {
-      // Map the scaled pixel back to the nearest original pixel
-      let origX = floor(x / scaleFactor);
-      let origY = floor(y / scaleFactor);
+    scaledImg.loadPixels();
 
-      // Get the original pixel color
-      let origIndex = (origY * img.width + origX) * 4;
-      let r = img.pixels[origIndex];
-      let g = img.pixels[origIndex + 1];
-      let b = img.pixels[origIndex + 2];
-      let a = img.pixels[origIndex + 3];
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let origX = floor(x / xFactor);
+        let origY = floor(y / yFactor);
 
-      // Set the scaled pixel color
-      let newIndex = (y * newWidth + x) * 4;
-      scaledImg.pixels[newIndex] = r;
-      scaledImg.pixels[newIndex + 1] = g;
-      scaledImg.pixels[newIndex + 2] = b;
-      scaledImg.pixels[newIndex + 3] = a;
+        let origIndex = (origY * img.width + origX) * 4;
+        let r = img.pixels[origIndex];
+        let g = img.pixels[origIndex + 1];
+        let b = img.pixels[origIndex + 2];
+        let a = img.pixels[origIndex + 3];
+
+        let newIndex = (y * width + x) * 4;
+        scaledImg.pixels[newIndex] = r;
+        scaledImg.pixels[newIndex + 1] = g;
+        scaledImg.pixels[newIndex + 2] = b;
+        scaledImg.pixels[newIndex + 3] = a;
+      }
     }
-  }
 
-  scaledImg.updatePixels();
-    
+    scaledImg.updatePixels();
 
     this.img = scaledImg
   }
@@ -393,6 +391,7 @@ void main() {
     this.shader.setUniform("uResolution", [width, height])
     this.shader.setUniform("uBall", ballCrushPos ? [ballCrushPos[0], height - ballCrushPos[1]] : [0, 0]);
     this.shader.setUniform("uTime", millis() * 0.001);
+    this.shader.setUniform('uImage', this.img)
 
     rect(0, 0, width, height)
     resetShader()
