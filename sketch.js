@@ -187,13 +187,14 @@ class Scene {
     this.ball = null
     this.box = null
     this.font = null
+    this.img = null
   }
 
   init() {
     createCanvas(windowWidth, windowHeight, WEBGL)
 
     this.background = new BackGround()
-    this.background.loadImg()
+    this.background.loadImage(this.img)
 
     this.ball = new Ball()
     this.ball.render()
@@ -214,6 +215,12 @@ class Scene {
 
   loadFont() {
     this.font = loadFont("./Codystar-Regular-2.ttf")
+  }
+
+  
+  loadImage() {
+    const img = loadImage('koera.png')
+    this.img = img
   }
 
   text() {
@@ -332,7 +339,7 @@ void main() {
     
       // Define background and dot colors
       vec4 backgroundColor = vec4(0.5, 0.5, 0.5, 1.);
-      vec4 dotColor = vec4(0.6, 0.6, 0.6, 1.) + imgColor;
+      vec4 dotColor = mix(vec4(0.6, 0.6, 0.6, 1.),imgColor, .4);
     
       // Mix colors based on dot grid
       vec3 color = mix(backgroundColor.rgb, dotColor.rgb, dot);
@@ -348,9 +355,7 @@ void main() {
     this.img = null
   }
 
-  loadImg() {
-    const img = loadImage('koera.png')
-
+  loadImage(img) {
     img.loadPixels()
 
     const scaledImg = createImage(width, height);
@@ -434,6 +439,7 @@ const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]
 
 function preload() {
   scene.loadFont()
+  scene.loadImage()
 }
 
 function setup() {
